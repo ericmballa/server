@@ -45,7 +45,7 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static('dist'));
-app.use('/uploads', express.static('uploads'));
+//app.use('/uploads', express.static('uploads'));
 app.use(function(req, res, next){
     token = req.body.token
   // res.localAuth= req.headers.authorization
