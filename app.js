@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+var token;
 const flash = require('connect-flash');
 const validator = require('express-validator');
 const MongoStore = require('connect-mongo')(session);
@@ -18,7 +20,7 @@ const userRoutes = require('./api/routes/users');
 const panierRoutes = require('./api/routes/paniers');
 const imageRoutes = require('./api/routes/images');
 
-
+const checkAuth = require('./api/middleware/check-auth');
 
 
 mongoose.connect('mongodb://localhost:27017/projet');
@@ -31,6 +33,7 @@ app.use(morgan('dev'));
 //app.use(bodyParser.json());
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(validator())
 app.use(cors());
 app.use(session({secret: 'mballasecret',
  resave: false, 
@@ -44,8 +47,11 @@ app.use(passport.session());
 app.use(express.static('dist'));
 app.use('/uploads', express.static('uploads'));
 app.use(function(req, res, next){
-    res.locals.session = req.session
-    console.log(res.locals.session);
+    token = req.body.token
+  // res.localAuth= req.headers.authorization
+   // res.locals.session = req.session
+    //console.log(res.locals.session);
+ //console.log(res.body);
    
     next();
 });
