@@ -8,15 +8,14 @@ var nexmo = new Nexmo({
     apiSecret: 'bc096f405af421b0',
     
   }, {debug: true});
-
+const User = require('../models/user');
 const Product = require('../models/product');
 const Image = require('../models/image');
 const Commandes = require('../models/commande');
 const Cart = require('../models/card');
 const jwt = require('jsonwebtoken');
 const checkAuth = require('../middleware/check-auth');
-
-//handle incoming  Get request to /panier
+const cartValidator = require('../middleware/cartValidator');
 
 
 router.get('/', (req, res, next) =>{
@@ -31,9 +30,6 @@ router.get('/', (req, res, next) =>{
 
     })
 });
-
-
-
 
 router.get('/ajouter/:id', (req, res, next) =>{
     
@@ -51,7 +47,7 @@ router.get('/ajouter/:id', (req, res, next) =>{
         }
         
         res.status(200).json({
-        
+          
            products: cart.generateArray(),
             totalPrice: cart.totalPrice,
             totalQty: cart.totalQty,
@@ -66,113 +62,194 @@ router.get('/ajouter/:id', (req, res, next) =>{
     });
 }); 
 
-router.get('/ajouter/img/:id', checkAuth,  (req, res, next) =>{
-   
-    console.log(req.headers)
-    var cart = new Cart(checkAuth.cart ? checkAuth.cart : {});
+router.get('/img', checkAuth, (req, res, next) =>{
+    if(!checkAuth.cart){
+        return res.status(404).json({
+            message: 'produit introuvable dans le panier'
+        });
+    }
+    var cart = new Cart(checkAuth.cart);
+    res.status(200).json({
+       session: checkAuth.cart.totalQty
+
+    })
+});
+
+router.post('/ajouter/img/',cartValidator, (req, res, next) =>{
+//checkAuth,
+
+if(req.body.cart){
+const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+//console.log(decoded);
+const d = new Date();
+heure = d.toLocaleTimeString();
+console.log(heure);
+console.log(decoded.cart);
+const panier = decoded.cart;
+var cart = new Cart(cartValidator.cart = panier );
+//var cart = new Cart(cartValidator.cart ? cartValidator.cart : {} );   cartValidator.cart= 
+
+//console.log(cart);
+// ? cartValidator.cart : {}
+//cartValidator.cart = decoded ? cartValidator.cart : {}
     Image
-    .findById( productId = req.params.id)
+    .findById( productId = req.body.id)
     .exec()
     .then(image =>{
         cart.add(image, image.id);
-        checkAuth.cart = cart;
-        
+        cartValidator.cart = cart;
 
-        if(!checkAuth.cart){
-            res.status(404).json({products: null});
-        }
-        
-        res.status(200).json({
-        
-           products: cart.generateArray(),
+        const newCart = jwt.sign(
+            {
+            cart: cart,
+            products: cart.generateArray(),
             totalPrice: cart.totalPrice,
             totalQty: cart.totalQty,
-        })
-       // res.redirect('/img');
+              },
+              process.env.JWT_KEY,
+              {
+                  expiresIn: "2h"
+              });
+       // const decoded = jwt.verify(newCart, process.env.JWT_KEY);
+       // console.log(decoded);
+        res.status(200).json({
+            newCart: newCart,
+         })
     })
+  
     
     .catch(err =>{
         res.status(500).json({
             error: err
         });
     });
-});
+}
+else{
+    var cart = new Cart( cartValidator.cart = {});
+      console.log ( req.body.id );
+      Image
+      .findById( productId = req.body.id)
+      .exec()
+      .then(image =>{
+          cart.add(image, image.id);
+          cartValidator.cart = cart;
+  
+          const newCart = jwt.sign(
+              { 
+             cart: cart,
+              products: cart.generateArray(),
+              totalPrice: cart.totalPrice,
+              totalQty: cart.totalQty,
+                },
+                process.env.JWT_KEY,
+                {
+                    expiresIn: "2h"
+                });
+          res.status(200).json({
+              newCart: newCart,
+           })
+      }) 
+  
+    }
+}); 
 
 
-router.get('/reduire/img/:id', checkAuth, (req, res, next) =>{
+router.post('/reduire/img/',cartValidator, (req, res, next) =>{
+const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+console.log(decoded.cart);
+//console.log(req.body.id);
+var productId = req.body.id;
 
-    var productId = req.params.id;
-    var cart = new Cart(checkAuth.cart ? checkAuth.cart : {});
-    cart.reduceByOne(productId);
-    checkAuth.cart = cart;
+var cart = new Cart(cartValidator.cart ? cartValidator.cart : {});
+
+//var cart = new Cart(decoded);
+
+console.log(cart);
+cart.reduceByOne(productId);
+cartValidator.cart = cart;
+
+
+const newCart = jwt.sign(
+    {
+    cart: cart,
+    products: cart.generateArray(),
+    totalPrice: cart.totalPrice,
+    totalQty: cart.totalQty,
+      },
+      process.env.JWT_KEY,
+      {
+          expiresIn: "2h"
+      });
     
     res.status(200).json({
-        products: cart.generateArray(),
-        totalPrice: cart.totalPrice,
-        totalQty: cart.totalQty,
+        newCart: newCart
     });
    // res.redirect('/img');
     })
 
-    router.get('/supprimer/img/:id', checkAuth, (req, res, next) =>{
-        var productId = req.params.id;
-        console.log(productId);
-        var cart = new Cart(checkAuth.cart ? checkAuth.cart : {});
-        cart.removeItem(productId);
-        checkAuth.cart = cart;
+    router.post('/supprimer/img/', cartValidator, (req, res, next) =>{
+        var productId = req.body.id;
+        const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
         
-        res.status(200).json({
+        var cart = new Cart(cartValidator.cart ? cartValidator.cart : {});
+        console.log(decoded);
+        cart.removeItem(productId);
+        cartValidator.cart = cart;
+        const newCart = jwt.sign(
+            {
+            cart: cart,
             products: cart.generateArray(),
             totalPrice: cart.totalPrice,
             totalQty: cart.totalQty,
-        });
+              },
+              process.env.JWT_KEY,
+              {
+                  expiresIn: "2h"
+              });
+       
+        res.status(200).json({
+            newCart: newCart,
         })
-
-
-        router.get('/img', (req, res, next) =>{
-            if(!checkAuth.cart){
-                return res.status(404).json({
-                    message: 'produit introuvable dans le panier'
-                });
-            }
-            var cart = new Cart(checkAuth.cart);
-            res.status(200).json({
-                products: cart.generateArray(),
-                totalPrice: cart.totalPrice,
-                totalQty: cart.totalQty,
+        .catch(err =>{
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });  
+ })
         
-            })
-        });
 
-       /* router.get('/valider/img', (req, res, next) =>{
-            if(!checkAuth.cart){
+     
+
+        router.post('/valider/img', cartValidator, (req, res, next) =>{
+          // console.log(req.body);  checkAuth
+            const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+          //  console.log(decoded);
+
+            if(!cartValidator.cart){
                 return res.status(404).json({
                     message: 'produit introuvable dans le panier'
                 });
             }
-            var cart = new Cart(checkAuth.cart);
-            res.status(200).json({total: cart.totalPrice})
-        })*/
-
-        router.get('/valider/img',checkAuth, (req, res, next) =>{
-            if(!checkAuth.cart){
-                return res.status(404).json({
-                    message: 'produit introuvable dans le panier'
-                });
-            }
-            var cart = new Cart(checkAuth.cart);
+            var cart = new Cart(cartValidator.cart = decoded);
             res.status(200).json({total: cart.totalPrice})
         })
 
-        router.post('/commande/img', checkAuth, (req, res, next) => {
+        
+            router.post('/commande/img',  cartValidator, (req, res, next) => {
+//checkAuth,
+                const decodedcommande = jwt.verify(req.body.cart, process.env.JWT_KEY);
+               // const decoded = jwt.verify(req.body.token, process.env.JWT_KEY);
+               // console.log(decoded);
+                console.log(decodedcommande);
 
-            if(!checkAuth.cart){
+            if(!cartValidator.cart){
                 return res.status(404).json({
                     message: 'produit introuvable dans le panier'
                 });
             }
            
-            var cart = new Cart(checkAuth.cart);
+            var cart = new Cart(cartValidator.cart = decodedcommande);
             const text = 'nouvelle commande de' + cart ;
               const number = req.body.number;
              
@@ -189,8 +266,8 @@ router.get('/reduire/img/:id', checkAuth, (req, res, next) =>{
                 commandes
                 .save()
                 .then( resu =>{
-                    checkAuth.cart = null
-                    console.log(resu.name);
+                 cartValidator.cart = null
+                   // console.log(resu.name);
                     res.status(201).json({
                         message: 'Commande sauvegarder avec succés',
                         createdCommande:{
@@ -208,27 +285,7 @@ router.get('/reduire/img/:id', checkAuth, (req, res, next) =>{
  
         });
 
-     router.get('/commande/img', (req, res, next)=>{
-            Commandes.find({}).lean().exec((err, docs) =>{
-                if (err) {
-                    res.sendStatus(400);
-                }
-
-                var cart;
-                // var productId = req.params.id;
-                 docs.forEach(function(doc){
-                     cart = new Cart(doc.cart);
-                     doc.cart.items = cart.generateArray();
-                 });
-
-                res.status(200).json(
-                    docs
-                );
-            })
-                
-        });
-
-
+  
 
 
 router.get('/reduire/:id', (req, res, next) =>{
@@ -358,5 +415,17 @@ router.delete('/:orderId', (req, res, next)=>{
         });
     });
 })
+ /*function verifyToken(req, res, next){
+     const bearerHeader =req.headers.authorization;
+     if(typeof bearerHeader !== 'undefined'){
+
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+     } else {
+         res.sendStatus(403);
+     }
+ }*/
 
 module.exports = router;

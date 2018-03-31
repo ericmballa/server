@@ -19,13 +19,12 @@ export const Image = mongoose.model<IImageModel>('Image', imageSchema);*/
 
 
 const imageSchema = mongoose.Schema({
-   
     filename: String,
     originalName: String,
     desc: String,
     magasin: String,
     commentaire: String,
-    created: { type: Date, default: Date.now },
+    created: { type: Date, default: Date.now },   
     name: { type: String, required: true },
     rayon: { type: String, required: true },
     price: { type: Number, required: true },

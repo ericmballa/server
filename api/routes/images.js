@@ -28,6 +28,8 @@ var storage = multer.diskStorage({
 
  router.post('/', upload1.single('image'), (req, res, next) => {
     // Create a new image model and fill the properties
+    //const d = new Date();
+   // heure = d.toLocaleTimeString();
     let newImage = new Image();
     newImage.filename = req.file.filename;
     newImage.originalName = req.file.originalname;
@@ -37,6 +39,7 @@ var storage = multer.diskStorage({
     newImage.price = req.body.price;
     newImage.magasin = req.body.magasin;
     newImage.commentaire = req.body.commentaire;
+    
     newImage.save(err => {
         if (err) {
             return res.status(500).json({
@@ -47,6 +50,29 @@ var storage = multer.diskStorage({
     });
 });
 
+router.get('/imagephone', upload1.single('image'), (req, res, next) => {
+    // Create a new image model and fill the properties
+    //const d = new Date();
+   // heure = d.toLocaleTimeString();
+    let newImage = new Image();
+    newImage.filename = req.file.filename;
+    newImage.originalName = req.file.originalname;
+    newImage.desc = req.params.desc;
+    newImage.name = req.params.name;
+    newImage.rayon = req.params.rayon;
+    newImage.price = req.params.price;
+    newImage.magasin = req.params.magasin;
+    newImage.commentaire = req.params.commentaire;
+    
+    newImage.save(err => {
+        if (err) {
+            return res.status(500).json({
+                error: err
+            });
+        }
+        res.status(201).json({ newImage });
+    });
+});
 
 router.get('/', (req, res, next) => {
     // use lean() to get a plain JS object
@@ -70,6 +96,24 @@ router.get('/retour/:param', (req, res, next) => {
     console.log(param);
 
     Image.find({'rayon': param}, '-__v').lean().exec((err, images) => {
+        if (err) {
+            res.sendStatus(400);
+        }
+
+        // Manually set the correct URL to each image
+        for (let i = images.length - 1; i >= 0; i--) {
+            var img = images[i];
+            img.url = req.protocol + '://' + req.get('host') + '/images/' + img._id;
+        }
+        res.json(images);
+    })
+});
+
+router.get('/articles/:name', (req, res, next) => {
+    let param = req.params.name;
+    console.log(param);
+
+    Image.find({'name': param}, '-__v').lean().exec((err, images) => {
         if (err) {
             res.sendStatus(400);
         }
