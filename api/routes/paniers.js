@@ -79,7 +79,7 @@ router.post('/ajouter/img/',cartValidator, (req, res, next) =>{
 //checkAuth,
 
 if(req.body.cart){
-const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+const decoded = jwt.verify(req.body.cart, 'ericomballus');
 //console.log(decoded);
 const d = new Date();
 heure = d.toLocaleTimeString();
@@ -87,11 +87,7 @@ console.log(heure);
 console.log(decoded.cart);
 const panier = decoded.cart;
 var cart = new Cart(cartValidator.cart = panier );
-//var cart = new Cart(cartValidator.cart ? cartValidator.cart : {} );   cartValidator.cart= 
 
-//console.log(cart);
-// ? cartValidator.cart : {}
-//cartValidator.cart = decoded ? cartValidator.cart : {}
     Image
     .findById( productId = req.body.id)
     .exec()
@@ -106,7 +102,7 @@ var cart = new Cart(cartValidator.cart = panier );
             totalPrice: cart.totalPrice,
             totalQty: cart.totalQty,
               },
-              process.env.JWT_KEY,
+              'ericomballus',
               {
                   expiresIn: "2h"
               });
@@ -141,7 +137,7 @@ else{
               totalPrice: cart.totalPrice,
               totalQty: cart.totalQty,
                 },
-                process.env.JWT_KEY,
+                'ericomballus',
                 {
                     expiresIn: "2h"
                 });
@@ -155,7 +151,7 @@ else{
 
 
 router.post('/reduire/img/',cartValidator, (req, res, next) =>{
-const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+const decoded = jwt.verify(req.body.cart, 'ericomballus');
 console.log(decoded.cart);
 //console.log(req.body.id);
 var productId = req.body.id;
@@ -176,7 +172,8 @@ const newCart = jwt.sign(
     totalPrice: cart.totalPrice,
     totalQty: cart.totalQty,
       },
-      process.env.JWT_KEY,
+      'ericomballus',
+     // process.env.JWT_KEY,
       {
           expiresIn: "2h"
       });
@@ -189,7 +186,7 @@ const newCart = jwt.sign(
 
     router.post('/supprimer/img/', cartValidator, (req, res, next) =>{
         var productId = req.body.id;
-        const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+        const decoded = jwt.verify(req.body.cart, 'ericomballus');
         
         var cart = new Cart(cartValidator.cart ? cartValidator.cart : {});
         console.log(decoded);
@@ -202,7 +199,7 @@ const newCart = jwt.sign(
             totalPrice: cart.totalPrice,
             totalQty: cart.totalQty,
               },
-              process.env.JWT_KEY,
+              'ericomballus',
               {
                   expiresIn: "2h"
               });
@@ -223,7 +220,7 @@ const newCart = jwt.sign(
 
         router.post('/valider/img', cartValidator, (req, res, next) =>{
           // console.log(req.body);  checkAuth
-            const decoded = jwt.verify(req.body.cart, process.env.JWT_KEY);
+            const decoded = jwt.verify(req.body.cart, 'ericomballus');
           //  console.log(decoded);
 
             if(!cartValidator.cart){
@@ -238,7 +235,7 @@ const newCart = jwt.sign(
         
             router.post('/commande/img',  cartValidator, (req, res, next) => {
 //checkAuth,
-                const decodedcommande = jwt.verify(req.body.cart, process.env.JWT_KEY);
+                const decodedcommande = jwt.verify(req.body.cart, 'ericomballus');
                // const decoded = jwt.verify(req.body.token, process.env.JWT_KEY);
                // console.log(decoded);
                 console.log(decodedcommande);

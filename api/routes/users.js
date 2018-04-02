@@ -72,7 +72,8 @@ router.post("/login", (req, res, next) => {
                 name: user[0].name,
                 phone: user[0].phone
               },
-              process.env.JWT_KEY,
+              'ericomballus',
+             // process.env.JWT_KEY,
               {
                   expiresIn: "1h"
               }
