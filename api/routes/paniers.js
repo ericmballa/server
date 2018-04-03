@@ -233,12 +233,12 @@ const newCart = jwt.sign(
         })
 
         
-            router.post('/commande/img',  cartValidator, (req, res, next) => {
+        router.post('/commande/img',  cartValidator, (req, res, next) => {
 //checkAuth,
                 const decodedcommande = jwt.verify(req.body.cart, 'ericomballus');
                // const decoded = jwt.verify(req.body.token, process.env.JWT_KEY);
                // console.log(decoded);
-                console.log(decodedcommande);
+               // console.log(decodedcommande);
 
             if(!cartValidator.cart){
                 return res.status(404).json({
@@ -256,7 +256,7 @@ const newCart = jwt.sign(
                     _id: mongoose.Types.ObjectId(),
                     name: req.body.name,
                     phone: req.body.number,
-                    cart: cart,
+                    cart: decodedcommande,
                     date: Date.now(),
                     
                 });
@@ -321,7 +321,7 @@ router.get('/valider', (req, res, next) =>{
     res.status(200).json({total: cart.totalPrice})
 })
 
-router.post('/commande', (req, res, next) => {
+/*router.post('/commande', (req, res, next) => {
     if(!req.session.cart){
         return res.status(404).json({
             message: 'produit introuvable dans le panier'
@@ -369,17 +369,19 @@ router.post('/commande', (req, res, next) => {
             });
         });  
 });
-
+    */
 router.get('/commande', (req, res, next)=>{
-    Commandes.find( function(err, docs){
+    Commandes.find({}, function(err, docs){
         if (err){
             res.status(500).json({ error: err});
         }
         var cart;
        // var productId = req.params.id;
         docs.forEach(function(doc){
-            cart = new Cart(doc.cart);
+            console.log(doc);
+            cart = new Cart(doc.cart);  
             doc.cart.items = cart.generateArray();
+          // console.log(doc.cart.items);
         });
         res.status(200).json({
             docs: docs,
